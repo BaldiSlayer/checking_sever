@@ -5,6 +5,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"log"
 	"net/http"
+	"net/url"
+	"os"
 )
 
 type Submission struct {
@@ -18,10 +20,10 @@ type Submission struct {
 }
 
 func ResultsScrape() {
-	url := "https://acm.timus.ru/status.aspx?author=342187&count=100&refresh=0"
+	url_ := "https://acm.timus.ru/status.aspx?author=342187&count=100&refresh=0"
 
 	// Request the HTML page.
-	res, err := http.Get(url)
+	res, err := http.Get(url_)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -136,6 +138,61 @@ func ResultsScrape() {
 	fmt.Print(arr)
 }
 
+func SendSubmission() {
+	url_ := "https://acm.timus.ru/submit.aspx"
+
+	r := url.Values{
+		"action":     {"submit"},
+		"SpaceID":    {"1"},
+		"JudgeID":    {"342187EL"},
+		"Language":   {"65"},
+		"ProblemNum": {"1000"},
+		"Source":     {"abacaba"},
+	}
+
+	resp, err := http.PostForm(url_, r)
+
+	if err != nil {
+		return
+	}
+
+	defer resp.Body.Close()
+}
+
+func GetTaskHtml(url_ string) {
+	// Load the HTML document
+	doc, err := goquery.NewDocument(url_)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Find the div with class "problem_content"
+	problemContent := doc.Find("div.problem_content")
+
+	// Get the HTML content of the div
+	htmlContent, err := problemContent.Html()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Create a new file to write the content to
+	file, err := os.Create("output.html")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	// Write the content to the file
+	_, err = file.WriteString(htmlContent)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Content written to output.html")
+}
+
 func main() {
-	ResultsScrape()
+	// ResultsScrape()
+	// SendSubmission()
+	// GetTaskHtml("https://acm.timus.ru/problem.aspx?space=1&num=1000")
 }
