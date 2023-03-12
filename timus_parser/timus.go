@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 )
 
 type Submission struct {
@@ -138,16 +139,18 @@ func ResultsScrape() {
 	fmt.Print(arr)
 }
 
-func SendSubmission() {
+func SendSubmission(judge_id string, language string, task_id string, code string) {
+	// This is the function, that send solution to the timus
+
 	url_ := "https://acm.timus.ru/submit.aspx"
 
 	r := url.Values{
 		"action":     {"submit"},
 		"SpaceID":    {"1"},
-		"JudgeID":    {"342187EL"},
-		"Language":   {"65"},
-		"ProblemNum": {"1000"},
-		"Source":     {"abacaba"},
+		"JudgeID":    {judge_id},
+		"Language":   {language},
+		"ProblemNum": {task_id},
+		"Source":     {code},
 	}
 
 	resp, err := http.PostForm(url_, r)
@@ -160,6 +163,9 @@ func SendSubmission() {
 }
 
 func GetTaskHtml(url_ string) {
+	// get the id of task
+	task_id := url_[(strings.Index(url_, "num=") + 4):]
+
 	// Load the HTML document
 	doc, err := goquery.NewDocument(url_)
 	if err != nil {
@@ -176,7 +182,7 @@ func GetTaskHtml(url_ string) {
 	}
 
 	// Create a new file to write the content to
-	file, err := os.Create("output.html")
+	file, err := os.Create(task_id + ".html")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -188,11 +194,10 @@ func GetTaskHtml(url_ string) {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Content written to output.html")
 }
 
 func main() {
 	// ResultsScrape()
-	// SendSubmission()
-	// GetTaskHtml("https://acm.timus.ru/problem.aspx?space=1&num=1000")
+	// SendSubmission("342187EL", "57", "1000", "a, b = [int(i) for i in input().split()]\nprint(a + b)")
+	// GetTaskHtml("https://acm.timus.ru/problem.aspx?space=1&num=1228")
 }
